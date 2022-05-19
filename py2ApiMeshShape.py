@@ -2169,7 +2169,7 @@ class apiMesh(om.MPxSurfaceShape):
             ##
             geometry.vertices[elemIndex] += om.MPoint(offset[0],offset[1],offset[2])
 
-            next(cpHandle)
+            cpHandle.next()
 
 
     def updateCachedSurface(self, geometry, componentList):
@@ -2886,7 +2886,7 @@ class apiMeshCreator(om.MPxNode):
         geometry.uvcoords.ucoord = uvs[0]
         geometry.uvcoords.vcoord = uvs[1]
 
-        for i in range(surfFn.numPolygons()):
+        for i in range(surfFn.numPolygons):
             polyVerts = surfFn.getPolygonVertices(i)
 
             pvc = len(polyVerts)
@@ -2899,7 +2899,7 @@ class apiMeshCreator(om.MPxNode):
                 geometry.face_connects.append( polyVerts[v] )
 
         for n in range(len(geometry.vertices)):
-            normal = surfFn.getVertexNormal(n)
+            normal = surfFn.getVertexNormal(n, False)
             geometry.normals.append( normal )
 
         return True
@@ -3109,6 +3109,11 @@ def gatherViewSelectedFaceInfo(frameContext, instances, meshGeom):
     
     if (renderingDestinationResult[0] != omr.MFrameContext.k3dViewport):
         return False, viewSelectedFaceInfo
+
+    # TODO: exclude hypershade 3d preview
+    if 'hyperShade' in renderingDestinationResult[1]:
+        return False, viewSelectedFaceInfo
+
 
     view = omui.M3dView.getM3dViewFromModelPanel(renderingDestinationResult[1])
 
