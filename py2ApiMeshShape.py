@@ -19,7 +19,7 @@
 # Similarly, to create the "apiMeshSubscene" shape, you create the "apiMeshSubscene" node and a "apiMeshCreatorNode" and connect the two nodes:
 #
 # createNode apiMeshSubscene_py -n m1;
-# createNode apiMeshCreator -n c1;
+# createNode apiMeshCreator_py -n c1;
 # connectAttr c1.outputSurface m1.inputSurface;
 
 
@@ -3080,14 +3080,14 @@ class apiMeshCreator(om.MPxNode):
 ## Helper class for link lost callback
 class ShadedItemUserData(om.MUserData):
     def __init__(self, override):
-        om.MUserData.__init__(self, legacy=False)
+        om.MUserData.__init__(self)
         self.fOverride = override
 
 ## Custom user data class to attach to face selection render item
 ## to help with viewport 2.0 selection
 class apiMeshHWSelectionUserData(om.MUserData):
     def __init__(self):
-        om.MUserData.__init__(self, legacy=False)	## let Maya clean up
+        om.MUserData.__init__(self)	## let Maya clean up
         self.fMeshGeom = None
         self.fInstanceIndex = 0
         self.fFaceViewSelectedStates = None
@@ -3193,7 +3193,7 @@ class simpleComponentConverterSubsceneOverride(omr.MPxComponentConverter):
         ## create a lookup table to match triangle intersection with face id :
         ## One face may contains more than one triangle
         if self.fComponentType == om.MFn.kMeshPolygonComponent:
-            selectionData = renderItem.getCustomData()
+            selectionData = renderItem.customData()
             if isinstance(selectionData, apiMeshHWSelectionUserData):
                 meshGeom = selectionData.fMeshGeom
                 faceStates = selectionData.fFaceViewSelectedStates
@@ -4228,15 +4228,15 @@ class apiMeshSubSceneOverride(omr.MPxSubSceneOverride):
                     self.setGeometryForRenderItem(viewSelectedFaceSelectionItem, selectionBuffers, indexBuffer, bounds)
                     
                     ## The apiMeshGeom object can be re-created during DG evaluation, thus update the pointer.
-                    userData = viewSelectedShadedItem.getCustomData()
+                    userData = viewSelectedShadedItem.customData()
                     if userData and isinstance(userData, apiMeshHWSelectionUserData):
                         userData.fMeshGeom = meshGeom
                         
-                    userData = viewSelectedTexturedItem.getCustomData()
+                    userData = viewSelectedTexturedItem.customData()
                     if userData and isinstance(userData, apiMeshHWSelectionUserData):
                         userData.fMeshGeom = meshGeom
                     
-                    userData = viewSelectedFaceSelectionItem.getCustomData()
+                    userData = viewSelectedFaceSelectionItem.customData()
                     if userData and isinstance(userData, apiMeshHWSelectionUserData):
                         userData.fMeshGeom = meshGeom
                         userData.fFaceViewSelectedStates = faceStates
@@ -4569,7 +4569,7 @@ class apiMeshSubSceneOverride(omr.MPxSubSceneOverride):
         ## In case there is only one instance or GPU instancing is not used
         if(instanceCount == 1 or instanceId == -1):
             instanceId = 0
-            userData = renderItem.getCustomData()
+            userData = renderItem.customData()
             if( userData and 
                 isinstance(userData, apiMeshHWSelectionUserData) and 
                 userData.fInstanceIndex >= 0 and 
@@ -4673,7 +4673,7 @@ class meshVertComponentConverterGeometryOverride(omr.MPxComponentConverter):
         ## to the correponding vertex component of the object
         ## Use same algorithm as in apiMeshGeometryOverride.updateIndexingForDormantVertices
 
-        selectionData = renderItem.getCustomData()
+        selectionData = renderItem.customData()
         if isinstance(selectionData, apiMeshHWSelectionUserData):
             meshGeom = selectionData.fMeshGeom
 
@@ -4746,7 +4746,7 @@ class meshEdgeComponentConverterGeometryOverride(omr.MPxComponentConverter):
         ## indices 2 & 3 : primitive #1
         ## ...
 
-        selectionData = renderItem.getCustomData()
+        selectionData = renderItem.customData()
         if isinstance(selectionData, apiMeshHWSelectionUserData):
             meshGeom = selectionData.fMeshGeom
 
@@ -4815,7 +4815,7 @@ class meshFaceComponentConverterGeometryOverride(omr.MPxComponentConverter):
         ## indices 3, 4 & 5 : primitive #1
         ## ...
 
-        selectionData = renderItem.getCustomData()
+        selectionData = renderItem.customData()
         if isinstance(selectionData, apiMeshHWSelectionUserData):
             meshGeom = selectionData.fMeshGeom
 
@@ -5122,7 +5122,7 @@ class apiMeshGeometryOverride(omr.MPxGeometryOverride):
 
                 ## Just print a message for illustration purposes. Note that the custom data is also
                 ## accessible from the MRenderItem in MPxShaderOverride::draw().
-                myCustomData = item.getCustomData()
+                myCustomData = item.customData()
                 if isinstance(myCustomData, apiMeshUserData):
                     print("Custom data '" + myCustomData.fMessage + "', modified count='" + str(myCustomData.fNumModifications) + "'")
                 else:
@@ -5503,7 +5503,7 @@ class apiMeshGeometryOverride(omr.MPxGeometryOverride):
             selectItem.enable(False)
 
         ## Add custom user data to selection item
-        myCustomData = selectItem.getCustomData()
+        myCustomData = selectItem.customData()
         if not myCustomData:
             ## create the custom data
             myCustomData = apiMeshUserData()
@@ -5652,7 +5652,7 @@ class apiMeshGeometryOverride(omr.MPxGeometryOverride):
             else:
                 vertexItem.enable(False)
 
-            mySelectionData = vertexItem.getCustomData()
+            mySelectionData = vertexItem.customData()
             if not isinstance(mySelectionData, apiMeshHWSelectionUserData):
                 ## create the custom data
                 mySelectionData = apiMeshHWSelectionUserData()
@@ -5934,7 +5934,7 @@ class apiMeshGeometryOverride(omr.MPxGeometryOverride):
         if selectionItem:
             selectionItem.enable(True)
 
-            mySelectionData = selectionItem.getCustomData()
+            mySelectionData = selectionItem.customData()
             if not isinstance(mySelectionData, apiMeshHWSelectionUserData):
                 ## create the custom data
                 mySelectionData = apiMeshHWSelectionUserData()
@@ -5975,7 +5975,7 @@ class apiMeshGeometryOverride(omr.MPxGeometryOverride):
         if selectionItem:
             selectionItem.enable(True)
 
-            mySelectionData = selectionItem.getCustomData()
+            mySelectionData = selectionItem.customData()
             if not isinstance(mySelectionData, apiMeshHWSelectionUserData):
                 ## create the custom data
                 mySelectionData = apiMeshHWSelectionUserData()
